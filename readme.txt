@@ -2,9 +2,9 @@
 Contributors: boonebgorges, cuny-academic-commons
 Donate link: http://teleogistic.net/donate
 Tags: buddypress, docs, wiki, documents, collaboration
-Requires at least: WordPress 3.1, BuddyPress 1.3
-Tested up to: WordPress 3.3-bleeding, BuddyPress 1.3
-Stable tag: 1.1.10
+Requires at least: WordPress 3.3, BuddyPress 1.5
+Tested up to: WordPress 3.5, BuddyPress 1.6.1
+Stable tag: 1.2
  
 Adds collaborative Docs to BuddyPress.
 
@@ -14,7 +14,7 @@ BuddyPress Docs adds collaborative work spaces to your BuddyPress community. Par
 
 Features include:
 
-* Group-specific Docs
+* Docs that can be linked to groups or users, with a variety of privacy levels
 * Doc taxonomy, using tags
 * Fully sortable and filterable doc lists
 * TinyMCE front-end doc editing
@@ -34,6 +34,76 @@ This plugin is in active development. For feature requests and bug reports, visi
 1. Sit back and watch the jack roll in
 
 == Changelog ==
+
+= 1.2 =
+* Major plugin rewrite
+* Moves Docs out of groups, making URLs cleaner, interface simpler, and making it possible to have Docs not linked to any group
+* Adds a sitewide Docs directory
+
+= 1.1.25 =
+* Fixes bug in Javascript that may have caused secondary editor rows not to
+  show in some cases
+* Fixes bug that broke comment moderation in some cases
+
+= 1.1.24 =
+* Moves Table buttons to second row of editor, for better fit on all themes
+* Adds Danish translation
+
+= 1.1.23 =
+* Adds Delete links to doc actions row
+* Fixes an invalid markup issue in a template file
+
+= 1.1.22 =
+* Added Romanian translation
+
+= 1.1.21 =
+* Show the 'author' panel in the Dashboard
+
+= 1.1.20 =
+* Fixes idle timeout javascript
+* Fixes bug with timezones on History tab
+* Improves data passed to filters
+* Cleans up references to WP's fullscreen editing mode
+* Fixes potential PHP warnings on the Dashboard
+
+= 1.1.19 =
+* Improved WP 3.3 support
+* Ensure that groups' can-delete setting defaults to 'member' when not present, to account for legacy groups
+* Moved to groups_get_group() for greater efficiency under BP 1.6
+* Fixed bug that redirected users to wp-admin when comparing a revision to itself
+
+= 1.1.18 =
+* Adds filters to allow site admins and plugin authors to force-enable Docs at group creation, or to remove the Docs step from the group creation process
+
+= 1.1.17 =
+* Forced BP Docs activity items to respect bp-disable-blogforum-comments in BP 1.5+
+* Added Portuguese translation (pt_PT)
+
+= 1.1.16 =
+* Fixed bug that caused comments to be posted to the incorrect blog when using parent and child Docs
+
+= 1.1.15 =
+* Fixed bug that allowed doc content to be loaded by slug in the incorrect group
+* Limit wikitext linking to docs in the same group
+* Fixed bug that prevented group admins from creating a Doc when minimum role was set to Moderators
+* Disables buggy fullscreen word count for the moment
+
+= 1.1.14 =
+* Fixed bug that prevented users from editing docs when no default settings were provided
+
+= 1.1.13 =
+* Switches default setting during group creation so that Docs are enabled
+* Adds a filter to default group settings so that plugin authors can modify
+
+= 1.1.12 =
+* Adds wiki-like bracket linking
+* Improves distraction-free editing JS
+* Updates tabindent plugin for better browser support
+
+= 1.1.11 =
+* Replaces deprecated function calls
+* Internationalizes some missing gettext calls
+* Adds an error message when a non-existent Doc is requested
 
 = 1.1.10 =
 * Fixes bug that made BP Docs break WP commenting on some setups
@@ -143,3 +213,10 @@ This plugin is in active development. For feature requests and bug reports, visi
 
 = 1.0-beta =
 * Initial public release
+
+== Upgrade Notice ==
+
+= 1.2 =
+* Major plugin rewrite. See http://dev.commons.gc.cuny.edu/2012/11/15/buddypress-docs-1-2/ for more details.
+
+

@@ -6,7 +6,7 @@
  *
  * @package BuddyPress Docs
  */
- 
+
 /**
  * Echoes the output of bp_docs_get_edit_doc_title()
  *
@@ -25,14 +25,7 @@ function bp_docs_edit_doc_title() {
 	 * @return string Doc title
 	 */
 	function bp_docs_get_edit_doc_title() {
-		global $bp;
-		
-		if ( empty( $bp->bp_docs->current_post ) || empty( $bp->bp_docs->current_post->post_title ) ) {
-			$title = '';
-		} else {
-			$title = $bp->bp_docs->current_post->post_title;
-		}
-			
+		$title = esc_attr( get_the_title() );
 		return apply_filters( 'bp_docs_get_edit_doc_title', $title );
 	}
 
@@ -54,14 +47,10 @@ function bp_docs_edit_doc_slug() {
 	 * @return string Doc slug
 	 */
 	function bp_docs_get_edit_doc_slug() {
-		global $bp;
-		
-		if ( empty( $bp->bp_docs->current_post ) || empty( $bp->bp_docs->current_post->post_name ) ) {
-			$slug = '';
-		} else {
-			$slug = $bp->bp_docs->current_post->post_name;
-		}
-			
+		global $post;
+
+		$slug = isset( $post->post_name ) ? esc_attr( $post->post_name ) : '';
+
 		return apply_filters( 'bp_docs_get_edit_doc_slug', $slug );
 	}
 
@@ -83,14 +72,8 @@ function bp_docs_edit_doc_content() {
 	 * @return string Doc content
 	 */
 	function bp_docs_get_edit_doc_content() {
-		global $bp;
-		
-		if ( empty( $bp->bp_docs->current_post ) || empty( $bp->bp_docs->current_post->post_content ) ) {
-			$content = '';
-		} else {
-			$content = $bp->bp_docs->current_post->post_content;
-		}
-			
+		global $post;
+		$content = bp_docs_is_existing_doc() ? $post->post_content : '';
 		return apply_filters( 'bp_docs_get_edit_doc_content', $content );
 	}
 
@@ -101,48 +84,37 @@ function bp_docs_edit_doc_content() {
  * @since 1.0-beta
  */
 function bp_docs_edit_parent_dropdown() {
-	global $bp; 
-	
-	// Get the item docs to use as Include arguments
-	$q 			= new BP_Docs_Query;
-	$q->current_view 	= 'list';
-	$qt 			= $q->build_query();
-	
-	// Make sure we don't limit the posts displayed
-	$qt['showposts']	= -1;
-	
-	// Order them by name, no matter what
-	$qt['orderby'] 		= 'post_title';
-	$qt['order']		= 'ASC';
-	
-	$include_posts		= new WP_Query( $qt );
-	
+	global $bp;
+
 	$include = array();
-	
-	if ( $include_posts->have_posts() ) {
-		while ( $include_posts->have_posts() ) {
-			$include_posts->the_post();
+
+	$doc_query_builder = new BP_Docs_Query( array( 'doc_slug' => false, 'posts_per_page' => -1 ) );
+	$doc_query = $doc_query_builder->get_wp_query();
+
+	if ( $doc_query->have_posts() ) {
+		while ( $doc_query->have_posts() ) {
+			$doc_query->the_post();;
 			$include[] = get_the_ID();
 		}
 	}
-	
+
 	// Exclude the current doc, if this is 'edit' and not 'create' mode
-	$exclude 	= ! empty( $bp->bp_docs->current_post->ID ) ? array( $bp->bp_docs->current_post->ID ) : false;
+	$exclude = ! empty( $bp->bp_docs->current_post->ID ) ? array( $bp->bp_docs->current_post->ID ) : false;
 
 	// Highlight the existing parent doc, if any
-	$parent 	= ! empty( $bp->bp_docs->current_post->post_parent ) ? $bp->bp_docs->current_post->post_parent : false;
+	$parent  = ! empty( $bp->bp_docs->current_post->post_parent ) ? $bp->bp_docs->current_post->post_parent : false;
 
-	$pages = wp_dropdown_pages( array( 
-		'post_type' 	=> $bp->bp_docs->post_type_name, 
+	$pages = wp_dropdown_pages( array(
+		'post_type' 	=> $bp->bp_docs->post_type_name,
 		'exclude' 	=> $exclude,
 		'include'	=> $include,
-		'selected' 	=> $parent, 
-		'name' 		=> 'parent_id', 
+		'selected' 	=> $parent,
+		'name' 		=> 'parent_id',
 		'show_option_none' => __( '(no parent)', 'bp-docs' ),
-		'sort_column'	=> 'menu_order, post_title', 
+		'sort_column'	=> 'menu_order, post_title',
 		'echo' 		=> 0 )
 	);
-	
+
 	echo $pages;
 }
 
@@ -163,7 +135,7 @@ function bp_docs_remove_tinymce_more_button( $buttons ) {
 			$buttons = array_values( $buttons );
 		}
 	}
-	
+
 	return $buttons;
 }
 add_filter( 'mce_buttons', 'bp_docs_remove_tinymce_more_button' );
@@ -175,7 +147,7 @@ add_filter( 'mce_buttons', 'bp_docs_remove_tinymce_more_button' );
  * playing nice with BuddyPress Docs, so I'm removing it for the moment and falling back on
  * TinyMCE's default link button.
  *
- * This function also adds the 
+ * This function also adds the
  *
  * @package BuddyPress Docs
  * @since 1.0.4
@@ -185,22 +157,69 @@ add_filter( 'mce_buttons', 'bp_docs_remove_tinymce_more_button' );
  */
 function bp_docs_remove_tinymce_plugins( $initArray ) {
 	if ( bp_docs_is_bp_docs_page() ) {
-		$plugins 	= explode( ',', $initArray['plugins'] );		
+		$plugins 	= explode( ',', $initArray['plugins'] );
 
 		// Remove internal linking
 		$wplink_key = array_search( 'wplink', $plugins );
 		if ( $wplink_key ) {
 			unset( $plugins[$wplink_key] );
 		}
-		
-		$plugins = array_values( $plugins );	
-		
+
+		$plugins = array_values( $plugins );
+
 		$initArray['plugins'] = implode( ',', $plugins );
 	}
-	
+
 	return $initArray;
 }
 add_filter( 'tiny_mce_before_init', 'bp_docs_remove_tinymce_plugins' );
+
+/**
+ * Hook our idle function to the TinyMCE.onInit event
+ *
+ * @package BuddyPress_Docs
+ * @since 1.1.20
+ */
+function bp_docs_add_idle_function_to_tinymce( $initArray ) {
+	if ( bp_docs_is_bp_docs_page() ) {
+
+		//$initArray['setup'] = 'alert(\'hi\');';
+		$initArray['setup'] = 'function(ed) {
+			ed.onInit.add(
+				function(ed) {
+					_initJQuery();
+
+					// Set up listeners
+					jQuery(\'#\' + ed.id + \'_parent\').bind(\'mousemove\',function (evt){
+						_active(evt);
+					});
+
+					bp_docs_load_idle();
+
+					/* Hide rows 3+ */
+					var rows = jQuery(\'#\' + ed.editorContainer).find(\'table.mceToolbar\');
+					jQuery(rows).each(function(k,row){
+						if ( !jQuery(row).hasClass(\'mceToolbarRow2\') && !jQuery(row).hasClass(\'mceToolbarRow1\' ) ) {
+							jQuery(row).toggle();
+						}
+					});
+
+					bp_docs_kitchen_sink(ed);
+
+				}
+			);
+
+			ed.onKeyDown.add(
+				function(ed) {
+					_active();
+				}
+			);
+		}';
+	}
+
+	return $initArray;
+}
+add_filter( 'tiny_mce_before_init', 'bp_docs_add_idle_function_to_tinymce' );
 
 /**
  * Adds BuddyPress Docs-specific TinyMCE plugins
@@ -211,7 +230,7 @@ add_filter( 'tiny_mce_before_init', 'bp_docs_remove_tinymce_plugins' );
  *
  * @package BuddyPress Docs
  * @since 1.1.5
- * 
+ *
  * @param array $plugins TinyMCE external plugins registered in WP
  * @return array $plugins Plugin list, with BP Docs plugins added
  */
@@ -219,9 +238,9 @@ function bp_docs_add_external_tinymce_plugins( $plugins ) {
 	if ( bp_docs_is_bp_docs_page() ) {
 		$plugins['table'] 	= WP_PLUGIN_URL . '/buddypress-docs/lib/js/tinymce/plugins/table/editor_plugin.js';
 		$plugins['tabindent'] 	= WP_PLUGIN_URL . '/buddypress-docs/lib/js/tinymce/plugins/tabindent/editor_plugin.js';
-		$plugins['print'] 	= WP_PLUGIN_URL . '/buddypress-docs/lib/js/tinymce/plugins/print/editor_plugin.js'; 
+		$plugins['print'] 	= WP_PLUGIN_URL . '/buddypress-docs/lib/js/tinymce/plugins/print/editor_plugin.js';
 	}
-	
+
 	return $plugins;
 }
 add_filter( 'mce_external_plugins', 'bp_docs_add_external_tinymce_plugins' );
@@ -237,13 +256,13 @@ add_filter( 'mce_external_plugins', 'bp_docs_add_external_tinymce_plugins' );
  *
  * @package BuddyPress Docs
  * @since 1.1.5
- * 
+ *
  * @param array $buttons TinyMCE buttons
  * @return array $buttons Button list, with BP Docs buttons added
  */
 function bp_docs_add_external_tinymce_buttons_row1( $buttons ) {
 	$justify_right_key = array_search( 'justifyright', $buttons );
-	
+
 	if ( $justify_right_key !== 0 ) {
 		// Shift the buttons one to the right and remove from original array
 		$count = count( $buttons );
@@ -252,36 +271,36 @@ function bp_docs_add_external_tinymce_buttons_row1( $buttons ) {
 			$new_buttons[] = $buttons[$i];
 			unset( $buttons[$i] );
 		}
-		
+
 		// Put the three pieces together
 		$buttons = array_merge( $buttons, array( 'tabindent' ), $new_buttons );
 	}
-	
+
 	// Add the Print button just before the kitchen sink
 	$ks = array_pop( $buttons );
 	$buttons = array_merge( $buttons, array( 'print' ), array( $ks ) );
-	
+
 	return $buttons;
 }
 add_filter( 'mce_buttons', 'bp_docs_add_external_tinymce_buttons_row1' );
 
 /**
- * Adds BuddyPress Docs-specific TinyMCE plugin buttons to row 2 of the editor
+ * Adds BuddyPress Docs-specific TinyMCE plugin buttons to row 3 of the editor
  *
  * Includes:
  *   - tablecontrols
  *
  * @package BuddyPress Docs
  * @since 1.1.5
- * 
+ *
  * @param array $buttons TinyMCE buttons
  * @return array $buttons Button list, with BP Docs buttons added
  */
-function bp_docs_add_external_tinymce_buttons_row2( $buttons ) {
+function bp_docs_add_external_tinymce_buttons_row3( $buttons ) {
 	$buttons[] = 'tablecontrols';
-	
+
 	return $buttons;
 }
-add_filter( 'mce_buttons_2', 'bp_docs_add_external_tinymce_buttons_row2' );
+add_filter( 'mce_buttons_3', 'bp_docs_add_external_tinymce_buttons_row3' );
 
 ?>
