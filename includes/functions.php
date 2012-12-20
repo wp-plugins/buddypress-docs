@@ -610,3 +610,55 @@ function bp_docs_update_doc_access( $doc_id, $access_setting = 'anyone' ) {
 
 }
 
+/**
+ * Should 'hide_sitewide' be true for activity items associated with this Doc?
+ *
+ * We generalize: mark the activity items as 'hide_sitewide' whenever the
+ * 'read' setting is something other than 'anyone'.
+ *
+ * Note that this gets overridden by the filter in integration-groups.php in
+ * the case of group-associated Docs.
+ *
+ * @since 1.2.8
+ * @param int $doc_id
+ * @return bool $hide_sitewide
+ */
+function bp_docs_hide_sitewide_for_doc( $doc_id ) {
+	if ( ! $doc_id ) {
+		return false;
+	}
+
+	$settings = get_post_meta( $doc_id, 'bp_docs_settings', true );
+	$hide_sitewide = empty( $settings['read'] ) || 'anyone' != $settings['read'];
+
+	return apply_filters( 'bp_docs_hide_sitewide_for_doc', $hide_sitewide, $doc_id );
+}
+
+/**
+ * Check to see if the post is currently being edited by another user.
+ *
+ * This is a verbatim copy of wp_check_post_lock(), which is only available
+ * in the admin
+ *
+ * @since 1.2.8
+ *
+ * @param int $post_id ID of the post to check for editing
+ * @return bool|int False: not locked or locked by current user. Int: user ID of user with lock.
+ */
+function bp_docs_check_post_lock( $post_id ) {
+	if ( !$post = get_post( $post_id ) )
+		return false;
+
+	if ( !$lock = get_post_meta( $post->ID, '_edit_lock', true ) )
+		return false;
+
+	$lock = explode( ':', $lock );
+	$time = $lock[0];
+	$user = isset( $lock[1] ) ? $lock[1] : get_post_meta( $post->ID, '_edit_last', true );
+
+	$time_window = apply_filters( 'wp_check_post_lock_window', AUTOSAVE_INTERVAL * 2 );
+
+	if ( $time && $time > time() - $time_window && $user != get_current_user_id() )
+		return $user;
+	return false;
+}
