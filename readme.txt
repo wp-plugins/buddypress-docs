@@ -35,6 +35,16 @@ This plugin is in active development. For feature requests and bug reports, visi
 
 == Changelog ==
 
+= 1.3 =
+* Adds theme compatibility layer, for better formatting with all themes
+* Full compatibility with BuddyPress 1.7
+* Don't show permissions snapshot to non-logged-in users
+* Adds Docs link to My Account toolbar menu
+* Delete Doc activity when deleting Doc
+* Delete local Doc tags when deleting Doc from any location
+* Improved markup for Create New Docs button
+* Don't show History quicklink on directories when revisions are disabled
+
 = 1.2.10 =
 * Improved compatibility with BP Group Hierarchy
 * Fixes for global directory pagination
