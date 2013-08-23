@@ -330,4 +330,4 @@ This plugin is in active development. For feature requests and bug reports, visi
 == Upgrade Notice ==
 
 = 1.2 =
-* Major plugin rewrite. See http://dev.commons.gc.cuny.edu/2012/11/15/buddypress-docs-1-2/ for more details.
+* Major plugin rewrite. See http://dev.commons.gc.cuny.edu/2012/11/15/buddypress-docs-1-2/ for more details
